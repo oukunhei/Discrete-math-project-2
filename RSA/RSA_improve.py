@@ -88,20 +88,48 @@ class RSA:
         return pow(ciphertext, d, n)
 
     def encrypt_text(self, message: str, public_key: Tuple[int, int]) -> List[int]:
+        """Encrypt text with proper padding and chunking."""
         e, n = public_key
-        max_block_size = (n.bit_length() // 8) - 1  # Adjust block size to avoid overflow
-        blocks = [message[i:i + max_block_size] for i in range(0, len(message), max_block_size)]
-        encoded = [pow(int.from_bytes(block.encode('utf-8'), 'big'), e, n) for block in blocks]
-        return encoded
+        max_block_bytes = (n.bit_length() - 1) // 8
+        message_bytes = message.encode('utf-8')
+        
+        # 使用OAEP填充
+        cipher_blocks = []
+        for i in range(0, len(message_bytes), max_block_bytes - 11):  # 留出填充空间
+            block = message_bytes[i:i + max_block_bytes - 11]
+            # 添加PKCS#1 v1.5填充
+            padding_length = max_block_bytes - 3 - len(block)
+            padding = bytes([secrets.randbelow(255) + 1 for _ in range(padding_length)])
+            padded_block = b'\x00\x02' + padding + b'\x00' + block
+            m_int = int.from_bytes(padded_block, 'big')
+            cipher_blocks.append(pow(m_int, e, n))
+            
+        return cipher_blocks
 
     def decrypt_text(self, ciphertext: List[int]) -> str:
+        """Decrypt text with padding removal."""
+        if self.private_key is None:
+            raise ValueError("Private key not set")
+            
         d, n = self.private_key
-        max_block_size = (n.bit_length() // 8) - 1  # Ensure block size matches encryption
-        decoded = [
-            pow(block, d, n).to_bytes(max_block_size, 'big').decode('utf-8', errors='replace')  # 'replace' to avoid loss of data
-            for block in ciphertext
-        ]
-        return ''.join(decoded)
+        max_block_bytes = (n.bit_length() - 1) // 8
+        message_bytes = bytearray()
+        
+        for block in ciphertext:
+            m_int = self.decrypt_int(block)
+            m_bytes = m_int.to_bytes(max_block_bytes, 'big')
+            
+            # 移除PKCS#1 v1.5填充
+            try:
+                # 查找第二个0x00字节
+                sep = m_bytes.find(b'\x00', 2)
+                if sep == -1:
+                    raise ValueError("Invalid padding")
+                message_bytes.extend(m_bytes[sep + 1:])
+            except Exception as e:
+                raise ValueError("Decryption error: invalid padding") from e
+                
+        return message_bytes.decode('utf-8')
 
 
 # 示例使用
