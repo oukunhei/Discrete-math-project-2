@@ -89,16 +89,16 @@ class RSA:
 
     def encrypt_text(self, message: str, public_key: Tuple[int, int]) -> List[int]:
         e, n = public_key
-        max_block_size = (n.bit_length() - 1) // 8
+        max_block_size = (n.bit_length() // 8) - 1  # Adjust block size to avoid overflow
         blocks = [message[i:i + max_block_size] for i in range(0, len(message), max_block_size)]
         encoded = [pow(int.from_bytes(block.encode('utf-8'), 'big'), e, n) for block in blocks]
         return encoded
 
     def decrypt_text(self, ciphertext: List[int]) -> str:
         d, n = self.private_key
-        max_block_size = (n.bit_length() - 1) // 8
+        max_block_size = (n.bit_length() // 8) - 1  # Ensure block size matches encryption
         decoded = [
-            pow(block, d, n).to_bytes(max_block_size, 'big').decode('utf-8', errors='ignore')
+            pow(block, d, n).to_bytes(max_block_size, 'big').decode('utf-8', errors='replace')  # 'replace' to avoid loss of data
             for block in ciphertext
         ]
         return ''.join(decoded)
@@ -106,7 +106,7 @@ class RSA:
 
 # 示例使用
 if __name__ == "__main__":
-    rsa = RSA(bit_length=64)  # 实际使用建议 >= 2048
+    rsa = RSA(bit_length=2048)  # 建议使用更长的密钥
 
     public_key, private_key = rsa.generate_keys()
     print(f"模数 n: {rsa.n}")
@@ -132,4 +132,3 @@ if __name__ == "__main__":
     assert decrypted_text.startswith("Hello")
 
     print("\nRSA 加解密测试成功！")
-
