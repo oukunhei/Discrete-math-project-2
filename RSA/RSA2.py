@@ -44,6 +44,7 @@ class RSA:
             if self._is_prime(p):
                 return p
 
+    #有风险迭代超出限制，Python 默认的递归深度限制大约是 1000 层
     def _modinv(self, a: int, m: int) -> int:
         def egcd(a, b):
             if a == 0:
@@ -56,6 +57,7 @@ class RSA:
             raise Exception("modular inverse does not exist")
         return x % m
 
+    #
     def generate_keys(self) -> Tuple[Tuple[int, int], Tuple[int, int]]:
         p = self._generate_large_prime()
         q = self._generate_large_prime()
@@ -86,7 +88,7 @@ class RSA:
             raise ValueError("Private key not set. Cannot decrypt.")
         d, n = self.private_key
         return pow(ciphertext, d, n)
-    #原代码出现数据损坏问题，整数转换回字节时没有正确填充，no_bytes没有正确处理长度
+
     def encrypt_text(self, message: str, public_key: Tuple[int, int]) -> List[int]:
         e, n = public_key
         max_block_bytes = (n.bit_length() - 1) // 8  # 最大字节数
