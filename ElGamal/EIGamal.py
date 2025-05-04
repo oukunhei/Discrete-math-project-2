@@ -1,9 +1,7 @@
-#初版，暂时还没能测试！
-#选用不同的g和p会直接影响计算效率和安全性，两个都需要验证
-#要改的部分：k的随机生成，加密部分用高效算法
+#要改的部分：k的随机生成，加密部分可以更高效
 import random
 from math import gcd
-from typing import Tuple
+from typing import Union, List, Tuple, Optional
 
 class ElGamal:
     def __init__(self, bit_length: int = 256):
@@ -107,62 +105,91 @@ class ElGamal:
         self.public_key = pow(self.g, self.private_key, self.p)
         return self.private_key, self.public_key
 
-    def encrypt(self, plaintext: int, public_key: int) -> Tuple[int, int]:
+    def encrypt(
+        self,
+        plaintext: Union[int, str, bytes],
+        return_str: bool = True
+    ) -> Union[Tuple[int, int], List[Tuple[int, int]]]:
         """
-        加密消息
-        :param plaintext: 明文(整数)
-        :param public_key: 接收者的公钥
-        :return: 密文(c1, c2)
+        加密消息（支持长文本分段加密）
+        :param plaintext: 明文（整数、字符串或字节）
+        :param return_str: 解密时是否返回字符串（仅对bytes/str输入有效）
+        :return: 密文（短文本返回 (c1, c2)，长文本返回 [(c1, c2), ...]）
         """
-        if plaintext >= self.p:
-            raise ValueError("明文必须小于p")
+        if isinstance(plaintext, (str, bytes)):
+            # 如果是字符串或字节，转换为整数列表（分段）
+            if isinstance(plaintext, str):
+                plaintext = plaintext.encode("utf-8")
+            # 计算合适的 chunk_size（确保每段数值 < p）
+            chunk_size = (self.p.bit_length() // 8) - 1  # 预留空间
+            chunks = [
+                plaintext[i:i + chunk_size]
+                for i in range(0, len(plaintext), chunk_size)
+            ]
+            # 每段转为整数并加密
+            ciphertexts = []
+            for chunk in chunks:
+                chunk_int = int.from_bytes(chunk, byteorder="big")
+                if chunk_int >= self.p:
+                    raise ValueError("明文分段后仍然过大，请减小 chunk_size")
+                ciphertexts.append(self._encrypt_int(chunk_int))
+            return ciphertexts
+        else:
+            # 直接加密整数（短文本）
+            if plaintext >= self.p:
+                raise ValueError("明文整数必须小于 p")
+            return self._encrypt_int(plaintext)
+
+    def _encrypt_int(self, plaintext: int) -> Tuple[int, int]:
+        """加密一个整数"""
+        while True:
+            k = random.randint(2, self.p - 2)
+            if gcd(k, self.p - 1) == 1:  # 确保k与p-1互质
+                break
         
-        # 选择一个随机数k (1,p-2) and is prime to p-1
-        k = random.randint(2, self.p - 2)
-        # c1 = g^k mod p
+        # 更高效的计算方式
         c1 = pow(self.g, k, self.p)
-        # c2 = (plaintext * y^k) mod p
-        c2 = (plaintext * pow(public_key, k, self.p)) % self.p
+        s = pow(self.public_key, k, self.p)
+        c2 = (plaintext * s) % self.p
         return c1, c2
 
-    def decrypt(self, ciphertext: Tuple[int, int]) -> int:
-        #解密密文 param ciphertext: 密文(c1, c2)，返回解密后的明文
-
+    def decrypt(
+        self, 
+        ciphertext: Union[Tuple[int, int], List[Tuple[int, int]]],
+        return_str: bool = True
+    ) -> Union[int, bytes, str]:
+        """
+        解密密文（自动判断是否分段）
+        :param ciphertext: 密文（短文本 (c1, c2)，长文本 [(c1, c2), ...]）
+        :param return_str: 是否返回字符串（仅对bytes/str输入有效）
+        :return: 明文（整数或字节或字符串）
+        """
         if self.private_key is None:
-            raise ValueError("私钥未生成")
-        
-        c1, c2 = ciphertext
-        # s = c1^x mod p
+            raise ValueError("缺少私钥，无法解密")
+
+        if isinstance(ciphertext, list):
+            # 长文本解密（分段）
+            plaintext_bytes = b""
+            for c1, c2 in ciphertext:
+                chunk_int = self._decrypt_int(c1, c2)
+                # 计算该段的字节长度（动态调整）
+                chunk_size = (chunk_int.bit_length() + 7) // 8
+                plaintext_bytes += chunk_int.to_bytes(chunk_size, byteorder="big")
+            
+            # 根据return_str决定返回类型
+            if return_str:
+                try:
+                    return plaintext_bytes.decode("utf-8")
+                except UnicodeDecodeError:
+                    return plaintext_bytes
+            return plaintext_bytes
+        else:
+            # 短文本解密（直接返回整数）
+            c1, c2 = ciphertext
+            return self._decrypt_int(c1, c2)
+
+    def _decrypt_int(self, c1: int, c2: int) -> int:
+        """解密单个整数（内部方法）"""
         s = pow(c1, self.private_key, self.p)
-        # plaintext = c2 * s^{-1} mod p
         s_inv = pow(s, self.p - 2, self.p)  # 费马小定理求逆元
-        plaintext = (c2 * s_inv) % self.p
-        return plaintext
-
-
-# 示例使用
-if __name__ == "__main__":
-    # 创建ElGamal实例
-    elgamal = ElGamal(bit_length=64)  # 实际应用中为2048位
-    
-    # 生成密钥对
-    private_key, public_key = elgamal.generate_keys()
-    print(f"素数p: {elgamal.p}")
-    print(f"生成元g: {elgamal.g}")
-    print(f"私钥: {private_key}")
-    print(f"公钥: {public_key}")
-    
-    # 加密消息
-    message = 123456  # 要加密的消息(整数)
-    print(f"原始消息: {message}")
-    
-    ciphertext = elgamal.encrypt(message, public_key)
-    print(f"加密后的密文: {ciphertext}")
-    
-    # 解密消息
-    decrypted_message = elgamal.decrypt(ciphertext)
-    print(f"解密后的消息: {decrypted_message}")
-    
-    # 验证解密是否正确
-    assert message == decrypted_message, "解密失败!"
-    print("解密验证成功!")
+        return (c2 * s_inv) % self.p
