@@ -1,11 +1,10 @@
-#要改的部分：k的随机生成，加密部分可以更高效
 import random
 from math import gcd
 from typing import Union, List, Tuple, Optional
 
 class ElGamal:
     def __init__(self, bit_length: int = 256):
-        #初始化ElGamal加密系统 :param bit_length: 密钥的比特长度
+        # Initialize ElGamal encrypt system :param bit_length: secret key bit length
         self.bit_length = bit_length
         self.p, self.g = self._generate_large_prime_and_generator()
         self.private_key = None
@@ -46,29 +45,29 @@ class ElGamal:
         return True
 
     def _generate_large_prime(self) -> int:
-        # 生成大素数
+        # generate a large prime number
 
         while True:
             p = random.getrandbits(self.bit_length)
-            # 确保是奇数且长度正确
+            # ensure p is odd and has the correct bit length
             p |= (1 << self.bit_length - 1) | 1
             if self._is_prime(p):
                 return p
 
     def _find_generator(self, p: int) -> int:
-        #找到素数p的一个原根
+        # find a primitive root (generator) of the prime p
         if p == 2:
             return 1
 
         # 分解p-1的质因数（需要提升算法效率）
         factors = []
         n = p - 1
-        # 测试2
+        # test if it is even
         if n % 2 == 0:
             factors.append(2)
             while n % 2 == 0:
                 n //= 2
-        # 测试奇数
+        # test odd numbers
         i = 3
         while i * i <= n:
             if n % i == 0:
@@ -79,7 +78,7 @@ class ElGamal:
         if n > 1:
             factors.append(n)
 
-        # 寻找原根
+        # find a generator
         for g in range(2, p):
             flag = True
             for factor in factors:
@@ -88,17 +87,17 @@ class ElGamal:
                     break
             if flag:
                 return g
-        raise ValueError("无法找到原根")
+        raise ValueError("Could not find a generator")
 
     def _generate_large_prime_and_generator(self) -> Tuple[int, int]:
-        #生成大素数及其原根
+        # generate a large prime and its generator
 
         p = self._generate_large_prime()
         g = self._find_generator(p)
         return p, g
 
     def generate_keys(self) -> Tuple[int, int]:
-        #生成公私钥对
+        # generate public and private keys
         #私钥是一个随机数 1 < x < p-1
         self.private_key = random.randint(2, self.p - 2)
         # 公钥 y = g^x mod p
@@ -111,22 +110,23 @@ class ElGamal:
         return_str: bool = True
     ) -> Union[Tuple[int, int], List[Tuple[int, int]]]:
         """
-        加密消息（支持长文本分段加密）
-        :param plaintext: 明文（整数、字符串或字节）
+        encrypt the plaintext (automatically handles chunking)
+        :param plaintext: plaintext (int, str, or bytes)
         :param return_str: 解密时是否返回字符串（仅对bytes/str输入有效）
         :return: 密文（短文本返回 (c1, c2)，长文本返回 [(c1, c2), ...]）
         """
         if isinstance(plaintext, (str, bytes)):
-            # 如果是字符串或字节，转换为整数列表（分段）
+            # if plaintext is str or bytes, convert to bytes
             if isinstance(plaintext, str):
                 plaintext = plaintext.encode("utf-8")
+                
             # 计算合适的 chunk_size（确保每段数值 < p）
             chunk_size = (self.p.bit_length() // 8) - 1  # 预留空间
             chunks = [
                 plaintext[i:i + chunk_size]
                 for i in range(0, len(plaintext), chunk_size)
             ]
-            # 每段转为整数并加密
+            # each chunk must be less than p
             ciphertexts = []
             for chunk in chunks:
                 chunk_int = int.from_bytes(chunk, byteorder="big")
