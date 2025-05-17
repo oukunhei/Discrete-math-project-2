@@ -1,18 +1,23 @@
+#Only implement PKCS#1 v1.5to prevent padding oracle attack
 import random
+import secrets
 from math import gcd
 from typing import Tuple, List
 
 
 class RSA:
-    def __init__(self, bit_length: int = 512):
+    def __init__(self, bit_length: int = 2048):
+        if bit_length < 1024:
+            raise ValueError("Key length too short. Use at least 1024 bits for security.")
         self.bit_length = bit_length
-        self.e = 65537  # 常用公钥指数
+        self.e = 65537  # Common public exponent
         self.n = None
         self.d = None
         self.public_key = None
         self.private_key = None
 
     def _is_prime(self, n: int, k: int = 5) -> bool:
+        """Miller-Rabin primality test."""
         if n <= 1:
             return False
         elif n <= 3:
@@ -38,14 +43,15 @@ class RSA:
         return True
 
     def _generate_large_prime(self) -> int:
+        """Generate a large prime number of specified bit length."""
         while True:
             p = random.getrandbits(self.bit_length)
-            p |= (1 << self.bit_length - 1) | 1  # 保证是奇数且高位为1
+            p |= (1 << self.bit_length - 1) | 1  # Ensure odd and MSB is 1
             if self._is_prime(p):
                 return p
 
-    #有风险迭代超出限制，Python 默认的递归深度限制大约是 1000 层
     def _modinv(self, a: int, m: int) -> int:
+        """Modular inverse using extended Euclidean algorithm."""
         def egcd(a, b):
             if a == 0:
                 return b, 0, 1
@@ -57,12 +63,13 @@ class RSA:
             raise Exception("modular inverse does not exist")
         return x % m
 
-    #
     def generate_keys(self) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+        """Generate RSA public and private keys."""
         p = self._generate_large_prime()
         q = self._generate_large_prime()
         while q == p:
             q = self._generate_large_prime()
+            
         self.n = n = p * q
         phi = (p - 1) * (q - 1)
 
@@ -78,86 +85,100 @@ class RSA:
         return self.public_key, self.private_key
 
     def encrypt_int(self, plaintext: int, public_key: Tuple[int, int]) -> int:
+        """Encrypt an integer using RSA public key."""
         e, n = public_key
         if plaintext >= n:
-            raise ValueError("The plaintext is too large and must be less than n")
+            raise ValueError("Plaintext must be less than modulus n")
         return pow(plaintext, e, n)
 
     def decrypt_int(self, ciphertext: int) -> int:
+        """Decrypt an integer using RSA private key."""
         if self.private_key is None:
             raise ValueError("Private key not set. Cannot decrypt.")
         d, n = self.private_key
+        if ciphertext >= n:
+            raise ValueError("Ciphertext must be less than modulus n")
         return pow(ciphertext, d, n)
 
     def encrypt_text(self, message: str, public_key: Tuple[int, int]) -> List[int]:
+        """Encrypt text with PKCS#1 v1.5 padding and chunking."""
+        if not message:
+            return []
+            
         e, n = public_key
-        max_block_bytes = (n.bit_length() - 1) // 8  # 最大字节数
+        max_block_bytes = (n.bit_length() - 1) // 8
         message_bytes = message.encode('utf-8')
-    
-        # 分块处理
-        blocks = []
-        for i in range(0, len(message_bytes), max_block_bytes):
-            block = message_bytes[i:i+max_block_bytes]
-            blocks.append(block)
-    
-        # 加密每个块
+        
         cipher_blocks = []
-        for block in blocks:
-            m_int = int.from_bytes(block, 'big')
-            c_int = pow(m_int, e, n)
-            cipher_blocks.append(c_int)
-    
+        for i in range(0, len(message_bytes), max_block_bytes - 11):  # Reserve space for padding
+            block = message_bytes[i:i + max_block_bytes - 11]
+            # Add PKCS#1 v1.5 padding
+            padding_length = max_block_bytes - 3 - len(block)
+            padding = bytes([secrets.randbelow(255) + 1 for _ in range(padding_length)])
+            padded_block = b'\x00\x02' + padding + b'\x00' + block
+            m_int = int.from_bytes(padded_block, 'big')
+            cipher_blocks.append(pow(m_int, e, n))
+            
         return cipher_blocks
 
-
     def decrypt_text(self, ciphertext: List[int]) -> str:
+        """Decrypt text with PKCS#1 v1.5 padding removal."""
         if self.private_key is None:
             raise ValueError("Private key not set")
-    
+            
         d, n = self.private_key
         max_block_bytes = (n.bit_length() - 1) // 8
         message_bytes = bytearray()
-    
-        # 解密每个块
+        
         for block in ciphertext:
+            if block >= n:
+                raise ValueError("Ciphertext block must be less than modulus n")
+                
             m_int = pow(block, d, n)
             m_bytes = m_int.to_bytes(max_block_bytes, 'big')
-        
-            # 找到第一个非零字节（去除前导填充）
-            start = 0
-            while start < len(m_bytes) and m_bytes[start] == 0:
-                start += 1
-        
-            message_bytes.extend(m_bytes[start:])
-    
+            
+            # Remove PKCS#1 v1.5 padding
+            try:
+                sep = m_bytes.find(b'\x00', 2)
+                if sep == -1:
+                    raise ValueError("Invalid padding")
+                message_bytes.extend(m_bytes[sep + 1:])
+            except Exception as e:
+                raise ValueError("Decryption error: invalid padding") from e
+                
         return message_bytes.decode('utf-8')
 
 
-# 示例使用
+# Example usage
 if __name__ == "__main__":
-    rsa = RSA(bit_length=64)  # 实际使用建议 >= 2048
+    rsa = RSA(bit_length=2048)  # Using recommended key length
 
     public_key, private_key = rsa.generate_keys()
-    print(f"模数 n: {rsa.n}")
-    print(f"公钥 (e, n): {public_key}")
-    print(f"私钥 (d, n): {private_key}")
+    print(f"Modulus n: {rsa.n}")
+    print(f"Public key (e, n): {public_key}")
+    print(f"Private key (d, n): {private_key}")
 
-
+    # Integer encryption demo
     num_message = 12345
-    print(f"\n整数明文: {num_message}")
+    print(f"\nInteger plaintext: {num_message}")
     cipher = rsa.encrypt_int(num_message, public_key)
-    print(f"加密后: {cipher}")
+    print(f"Encrypted: {cipher}")
     plain = rsa.decrypt_int(cipher)
-    print(f"解密后: {plain}")
+    print(f"Decrypted: {plain}")
     assert plain == num_message
 
-
+    # Text encryption demo
     text_message = "Hello, RSA encryption with long message support!"
-    print(f"\n文本明文: {text_message}")
+    print(f"\nText plaintext: {text_message}")
     cipher_blocks = rsa.encrypt_text(text_message, public_key)
-    print(f"加密后: {cipher_blocks}")
+    print(f"Encrypted blocks: {cipher_blocks}")
     decrypted_text = rsa.decrypt_text(cipher_blocks)
-    print(f"解密后: {decrypted_text}")
-    assert decrypted_text.startswith("Hello")
+    print(f"Decrypted text: {decrypted_text}")
+    assert decrypted_text == text_message
 
-    print("\nRSA 加解密测试成功！")
+    # Edge case test
+    print("\nTesting edge cases...")
+    empty_encrypted = rsa.encrypt_text("", public_key)
+    assert rsa.decrypt_text(empty_encrypted) == ""
+    
+    print("All tests passed successfully!")

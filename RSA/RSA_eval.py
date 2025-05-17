@@ -2,7 +2,7 @@ import unittest
 import random
 import string
 import time
-from RSA1 import RSA  # 确保你的RSA模块有encrypt_text和decrypt_text方法
+from RSA_1 import RSA  
 
 class LargeBatchRSATester(unittest.TestCase):
     @classmethod

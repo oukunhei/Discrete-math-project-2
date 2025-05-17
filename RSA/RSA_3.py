@@ -1,4 +1,5 @@
-#RSA加密算法 + AES对称加密算法的混合加密实现
+# The hybrid encryption implementation of RSA encryption algorithm and AES symmetric encryption algorithm
+# Improvement
 import os
 import hashlib
 import random

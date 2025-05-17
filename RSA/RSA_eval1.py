@@ -2,7 +2,7 @@ import unittest
 import random
 import string
 import time
-from RSA1 import RSA
+from RSA_1 import RSA
 
 class LargeBatchRSATester(unittest.TestCase):
     @classmethod

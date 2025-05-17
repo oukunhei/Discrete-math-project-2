@@ -1,4 +1,4 @@
-from RSA1 import RSA
+from RSA_4 import RSA
 
 rsa = RSA(bit_length=1024)
 pub, pri = rsa.generate_keys()
