@@ -15,13 +15,13 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 class RSA:
     def __init__(self, bit_length: int = 2048):
         self.bit_length = bit_length
-        self.e = 65537  # 常用公钥指数
+        self.e = 65537  
         self.n = None
         self.d = None
         self.public_key = None
         self.private_key = None
-        self._crypto_private_key = None  # 用于存储 cryptography 的私钥对象
-        self._crypto_public_key = None  # 用于存储 cryptography 的公钥对象
+        self._crypto_private_key = None  # Used to store the cryptography private key object
+        self._crypto_public_key = None  # Used to store the cryptography public key object
 
     def _is_prime(self, n: int, k: int = 5) -> bool:
         if n <= 1:
@@ -51,7 +51,7 @@ class RSA:
     def _generate_large_prime(self) -> int:
         while True:
             p = random.getrandbits(self.bit_length)
-            p |= (1 << self.bit_length - 1) | 1  # 保证是奇数且高位为1
+            p |= (1 << self.bit_length - 1) | 1  
             if self._is_prime(p):
                 return p
 
@@ -66,8 +66,8 @@ class RSA:
         if g != 1:
             raise Exception("modular inverse does not exist")
         return x % m
-    
-    #RSA加速：使用 CRT（Chinese Remainder Theorem）优化计算
+
+    #RSA speed up: use CRT（Chinese Remainder Theorem）to optimize decryption
     def generate_keys(self) -> Tuple[Tuple[int, int], Tuple[int, int]]:
         print("Using cryptography's built-in fast key generation...")
         self._crypto_private_key = rsa.generate_private_key(
@@ -123,7 +123,7 @@ class RSA:
     #     return self.public_key, self.private_key
 
     def encrypt_int(self, plaintext: int, public_key: Tuple[int, int]) -> int:
-        """使用OAEP填充加密整数"""
+        """Ues OAEP padding to encrypt an integer"""
         e, n = public_key
         if plaintext >= n:
             raise ValueError("The plaintext is too large and must be less than n")
@@ -141,7 +141,7 @@ class RSA:
         return int.from_bytes(ciphertext, 'big')
 
     def decrypt_int(self, ciphertext: int) -> int:
-        """使用OAEP填充解密整数"""
+        """Use OAEP padding to decrypt an integer"""
         if self.private_key is None:
             raise ValueError("Private key not set. Cannot decrypt.")
             
@@ -159,21 +159,21 @@ class RSA:
 
 
     def encrypt_text(self, message: str, public_key: Tuple[int, int]) -> List[str]:
-        """使用OAEP填充加密文本，返回Base64编码的密文列表"""
+        """Use OAEP padding to encrypt text and return a list of Base64 encoded ciphertexts"""
         e, n = public_key
         message_bytes = message.encode('utf-8')
-        
-        # 计算最大块大小（OAEP填充需要42字节）
+
+        # Calculate maximum block size (OAEP padding requires 42 bytes)
         key_size_bytes = (n.bit_length() + 7) // 8
         max_block_bytes = key_size_bytes - 42
         
-        # 分块处理
+        # Process message in blocks
         blocks = []
         for i in range(0, len(message_bytes), max_block_bytes):
             block = message_bytes[i:i+max_block_bytes]
             blocks.append(block)
-        
-        # 加密每个块并转为Base64
+
+        # Encrypt each block and convert to Base64
         cipher_blocks = []
         for block in blocks:
             cipher_bytes = self._crypto_public_key.encrypt(
@@ -189,13 +189,13 @@ class RSA:
         return cipher_blocks
 
     def decrypt_text(self, ciphertext: List[str]) -> str:
-        """解密Base64编码的密文列表"""
+        """Use OAEP padding to decrypt a list of Base64 encoded ciphertexts"""
         if self.private_key is None:
             raise ValueError("Private key not set")
         
         message_bytes = bytearray()
-        
-        # 解密每个块
+
+        # Decrypt each block
         for block in ciphertext:
             cipher_bytes = base64.b64decode(block.encode('ascii'))
             plain_bytes = self._crypto_private_key.decrypt(
@@ -210,7 +210,7 @@ class RSA:
         
         return message_bytes.decode('utf-8')
     def save_keys(self, filepath: str, password: str = None):
-        """安全保存密钥到文件，可选择密码保护"""
+        """Securely save keys to a file, with optional password protection"""
         if self._crypto_private_key is None:
             raise ValueError("No private key to save")
             
@@ -230,7 +230,7 @@ class RSA:
             f.write(pem)
 
     def load_keys(self, filepath: str, password: str = None):
-        """从文件加载密钥"""
+        """Load keys from a file, with optional password protection"""
         with open(filepath, 'rb') as f:
             self._crypto_private_key = serialization.load_pem_private_key(
                 f.read(),
@@ -249,16 +249,16 @@ class RSA:
         self._crypto_public_key = self._crypto_private_key.public_key()
 
 
-# 示例使用
+
 if __name__ == "__main__":
-    rsa = RSA(bit_length=1024)  # 实际使用建议 >= 2048
+    rsa = RSA(bit_length=1024)  
 
     public_key, private_key = rsa.generate_keys()
     print(f"模数 n: {rsa.n}")
     print(f"公钥 (e, n): {public_key}")
     print(f"私钥 (d, n): {private_key}")
 
-    # 测试密钥保存和加载
+  
     rsa.save_keys("rsa_key.pem", password="mysecurepassword")
     rsa.load_keys("rsa_key.pem", password="mysecurepassword")
 

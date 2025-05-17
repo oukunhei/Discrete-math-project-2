@@ -9,7 +9,7 @@ import random
 def generate_prime(bits=512):
     while True:
         p = random.getrandbits(bits)
-        P = (1 << bits - 1) | 1  # 确保是奇数且高位为1
+        P = (1 << bits - 1) | 1  # ensure is odd and the top bit is 1
         if is_prime(p):
             return p
 
@@ -72,11 +72,12 @@ def simple_aes_encrypt(data, key):
     return bytes(encrypted)
 
 def simple_aes_decrypt(data, key):
-#简单对称加密， XOR模拟
-    return simple_aes_encrypt(data, key)  # XOR 对称，加密=解密
+# The AES decryption is the same as encryption in this case
+    return simple_aes_encrypt(data, key)  # XOR symmetric, encryption = decryption
 
 
-#AES加密消息，RSA加密AES密钥
+
+# The hybrid encryption implementation of RSA encryption algorithm and AES symmetric encryption algorithm
 def hybrid_encrypt(message, pubkey):
     aes_key = os.urandom(32)
     
@@ -88,16 +89,16 @@ def hybrid_encrypt(message, pubkey):
     return encrypted_aes_key, encrypted_message
 
 def hybrid_decrypt(encrypted_aes_key, encrypted_message, privkey):
-    # RSA 解密 AES 密钥
+    # RSA decrypt AES key
     aes_key_int = rsa_decrypt(encrypted_aes_key, privkey)
     aes_key = aes_key_int.to_bytes(32, byteorder='big')
-    
-    # AES 解密消息
+
+    # AES decrypt message
     decrypted_message = simple_aes_decrypt(encrypted_message, aes_key)
     
     return decrypted_message.decode()
 
-# ========== 测试 ==========
+
 
 if __name__ == "__main__":
     print("生成RSA密钥对中...")

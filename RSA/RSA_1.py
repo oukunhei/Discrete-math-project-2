@@ -7,12 +7,14 @@ from typing import Tuple, List
 class RSA:
     def __init__(self, bit_length: int = 512):
         self.bit_length = bit_length
-        self.e = 65537  # 常用公钥指数
+        self.e = 65537  # Common public exponent
         self.n = None
         self.d = None
         self.public_key = None
         self.private_key = None
 
+    # Generate a large prime number using Miller-Rabin primality test
+    # Just a probabilistic test, so it may not be 100% accurate
     def _is_prime(self, n: int, k: int = 5) -> bool:
         if n <= 1:
             return False
@@ -38,14 +40,15 @@ class RSA:
                 return False
         return True
 
+    # Generate a large prime number of specified bit length
     def _generate_large_prime(self) -> int:
         while True:
             p = random.getrandbits(self.bit_length)
-            p |= (1 << self.bit_length - 1) | 1  # 保证是奇数且高位为1
+            p |= (1 << self.bit_length - 1) | 1 #ensure odd and the top bit is 1
             if self._is_prime(p):
                 return p
 
-    #有风险迭代超出限制，Python 默认的递归深度限制大约是 1000 层
+    #Extended Euclidean algorithm to find the modular inverse
     def _modinv(self, a: int, m: int) -> int:
         def egcd(a, b):
             if a == 0:
@@ -58,7 +61,7 @@ class RSA:
             raise Exception("modular inverse does not exist")
         return x % m
 
-    #
+    #Generate RSA public (e, n) and private keys(d, n)
     def generate_keys(self) -> Tuple[Tuple[int, int], Tuple[int, int]]:
         p = self._generate_large_prime()
         q = self._generate_large_prime()
@@ -92,16 +95,16 @@ class RSA:
 
     def encrypt_text(self, message: str, public_key: Tuple[int, int]) -> List[int]:
         e, n = public_key
-        max_block_bytes = (n.bit_length() - 1) // 8  # 最大字节数
+        max_block_bytes = (n.bit_length() - 1) // 8  
         message_bytes = message.encode('utf-8')
     
-        # 分块处理
+        # split message into blocks
         blocks = []
         for i in range(0, len(message_bytes), max_block_bytes):
             block = message_bytes[i:i+max_block_bytes]
             blocks.append(block)
     
-        # 加密每个块
+        # encrypt each block
         cipher_blocks = []
         for block in blocks:
             m_int = int.from_bytes(block, 'big')
@@ -119,12 +122,12 @@ class RSA:
         max_block_bytes = (n.bit_length() - 1) // 8
         message_bytes = bytearray()
     
-        # 解密每个块
+        # decrypt each block
         for block in ciphertext:
             m_int = pow(block, d, n)
             m_bytes = m_int.to_bytes(max_block_bytes, 'big')
-        
-            # 找到第一个非零字节（去除前导填充）
+
+            # Find the first non-zero byte (remove leading padding)
             start = 0
             while start < len(m_bytes) and m_bytes[start] == 0:
                 start += 1
@@ -134,9 +137,9 @@ class RSA:
         return message_bytes.decode('utf-8')
 
 
-# 示例使用
+# For testing
 if __name__ == "__main__":
-    rsa = RSA(bit_length=64)  # 实际使用建议 >= 2048
+    rsa = RSA(bit_length=64)  # In practice, use larger bit lengths (2048 or 4096)
 
     public_key, private_key = rsa.generate_keys()
     print(f"模数 n: {rsa.n}")
