@@ -6,10 +6,30 @@
 - Test the implementation with the encryption/decryption of short and long “textual” messages.
 - Analyze the performance and security level of RSA and ElGamal.
 
+## About the Project
+
+### File Structure
+
+Discrete-math-project-2
+├── README.md # 安装与运行说明
+├── RSA/
+│ ├── RSA_1.py # 
+│ ├── RSA_2.py # 
+│ ├── RSA_3.py # 
+│ ├── RSA_4.py # 
+│ ├── RSA_eval.py # 
+│ ├── RSA_eval1.py # 
+│ ├── RSA_textual.py # 
+│ └── test.py # 
+├── ElGamal/
+│ ├── ElGamal.py # basic ElGamal
+│ ├── ElGamal2.py # improved ElGamal of faster encrypting
+│ └── test.py # to be modified
+
 
 ## Getting Started
 
-## Prerequisites
+### Prerequisites
 Python 3.7 or higher is required.
 
 Check your Python version with:
@@ -18,18 +38,54 @@ python --version  # or python3 --version
 ```
 If needed, download Python from python.org.
 
-Dependencies:
-The code uses Python's built-in libraries (e.g., hashlib, os, random).
+## Dependencies
+The following Python libraries are required (install via `pip`):
+
+```bash
+pip install cryptography
+```
 
 ### Verifying Installation
 Run the following command to check if dependencies are installed successfully:
 ```bash
-python -c "import hashlib; print('hashlib loaded successfully!')"
+python -c "import cryptography; print('cryptography loaded successfully!')"
 ```
 If no errors occur, the environment setup is complete.
 
-## Run Demo
+## RSA Algorithm
 
-```python
-python test.py
+This RSA algorithm includes utilities for generating prime numbers, RSA key pairs, and performing cryptographic operations.
+
+### Core files
+- `RSA_1.py`: Contains the main RSA class with basic methods for generating keys, encrypting, and decrypting messages.
+- `RSA_2.py`: Implement PKCS#1 v1.5to prevent padding oracle attack
+- `RSA_3.py`: The hybrid encryption implementation of RSA encryption algorithm and AES symmetric encryption algorithm
+- `RSA_4.py`: Adopt cryptography package to add OAEP padding and PKCS#1 v1.5 padding
+- `RSA_eval.py`: Test example - to be modified
+- `RSA_eval1.py`: Test example - to be modified
+- `RSA_textual.py`: Test example - to be modified
+
+### Usage
+```bash
+python RSA_1.py
 ```
+all can directly run, but evaluation need to be improved
+
+## ElGamal Algorithm
+
+The ElGamal Algorithm 
+
+### Core files
+- `RSA_1.py`: Contains the main RSA class with basic methods for generating keys, encrypting, and decrypting messages.
+- `RSA_2.py`: Implement PKCS#1 v1.5to prevent padding oracle attack
+- `RSA_3.py`: The hybrid encryption implementation of RSA encryption algorithm and AES symmetric encryption algorithm
+- `RSA_4.py`: Adopt cryptography package to add OAEP padding and PKCS#1 v1.5 padding
+- `RSA_eval.py`: Test example - to be modified
+- `RSA_eval1.py`: Test example - to be modified
+- `RSA_textual.py`: Test example - to be modified
+
+### Usage
+```bash
+python RSA_1.py
+```
+all can directly run, but evaluation need to be improved
