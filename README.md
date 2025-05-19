@@ -73,10 +73,12 @@ all can directly run, but evaluation need to be improved
 
 ## ElGamal Algorithm
 
-The ElGamal Algorithm 
+This ElGamal algorithm implements an asymmetric encryption system using large prime numbers and modular exponentiation for secure key exchange and message encryption/decryption.
 
 ### Core files
-
+- `ElGamal.py`: Basic realization of the ElGamal Algorithm
+- `ElGamal.py2`: Improved the efficiency of finding a generator
+- `test.py`: test the algorithm
 
 ### Usage
 ```bash
