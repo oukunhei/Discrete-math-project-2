@@ -151,7 +151,7 @@ class RSA:
 
 # Example usage
 if __name__ == "__main__":
-    rsa = RSA(bit_length=2048)  # Using recommended key length
+    rsa = RSA(bit_length=1024)  # Using recommended key length
 
     public_key, private_key = rsa.generate_keys()
     print(f"Modulus n: {rsa.n}")
