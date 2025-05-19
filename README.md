@@ -5,3 +5,10 @@
 - Implement the ElGamal algorithm with the key generation, encryption, and decryption functions.
 - Test the implementation with the encryption/decryption of short and long “textual” messages.
 - Analyze the performance and security level of RSA and ElGamal.
+
+
+## Run Demo
+
+```python
+python test.py
+```
