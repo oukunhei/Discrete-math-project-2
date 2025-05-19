@@ -9,6 +9,18 @@
 
 ## Getting Started
 
+## Prerequisites
+Python 3.7 or higher is required.
+
+Check your Python version with:
+```bash
+python --version  # or python3 --version
+```
+If needed, download Python from python.org.
+
+Dependencies:
+The code uses Python's built-in libraries (e.g., hashlib, os, random).
+
 ### Verifying Installation
 Run the following command to check if dependencies are installed successfully:
 ```bash
