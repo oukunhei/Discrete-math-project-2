@@ -76,16 +76,10 @@ all can directly run, but evaluation need to be improved
 The ElGamal Algorithm 
 
 ### Core files
-- `RSA_1.py`: Contains the main RSA class with basic methods for generating keys, encrypting, and decrypting messages.
-- `RSA_2.py`: Implement PKCS#1 v1.5to prevent padding oracle attack
-- `RSA_3.py`: The hybrid encryption implementation of RSA encryption algorithm and AES symmetric encryption algorithm
-- `RSA_4.py`: Adopt cryptography package to add OAEP padding and PKCS#1 v1.5 padding
-- `RSA_eval.py`: Test example - to be modified
-- `RSA_eval1.py`: Test example - to be modified
-- `RSA_textual.py`: Test example - to be modified
+
 
 ### Usage
 ```bash
-python RSA_1.py
+python test.py
 ```
 all can directly run, but evaluation need to be improved
