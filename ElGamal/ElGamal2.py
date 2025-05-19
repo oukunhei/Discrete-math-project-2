@@ -157,7 +157,7 @@ class ElGamal:
                 raise ValueError("明文整数必须小于 p")
             return self._encrypt_int(plaintext)
 
-    def encrypt(self, plaintext: int) -> Tuple[int, int]:
+    def _encrypt_int(self, plaintext: int) -> Tuple[int, int]:
         # 预计算 p-1 的质因数（避免重复分解）
         if self._phi_factors==None:
             self._phi_factors = self.factorize(self.p - 1)
