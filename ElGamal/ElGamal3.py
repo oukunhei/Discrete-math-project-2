@@ -1,41 +1,35 @@
-# Use secrets to generate k compared to random.randint in ElGamal2.py
-import random
 import secrets
 from math import gcd
 from typing import Union, List, Tuple, Optional
 
 class ElGamal:
     def __init__(self, bit_length: int = 256):
-        # Initialize ElGamal encrypt system :param bit_length: private key bit length
+        if bit_length < 256:
+            raise ValueError("Bit length must be at least 256 for security")
+            
         self.bit_length = bit_length
-        self.p, self.g = self._generate_large_prime_and_generator()
-        self.private_key = None
-        self.public_key = None
-        self._phi_factors = None  # store factors of p-1 for efficiency
+        self.p, self.g = self.generate_safe_prime_and_generator()
+        self.private_key: Optional[int] = None
+        self.public_key: Optional[int] = None
+        self._phi_factors: Optional[set] = None  # store factors of (p-1)
 
-    def _is_prime(self, n: int, k: int = 5) -> bool:
-        """
-        Miller-Rabin primality test
-        :param n: number to test
-        :param k: number of tests
-        :return: is prime
-        """
-        if n <= 1:
+    #region Prime Number Generation
+    def miller_rabin_test(self, n: int, rounds: int = 5) -> bool:
+        """Improved Miller-Rabin test with deterministic checks for small numbers"""
+        if n < 2:
             return False
-        elif n <= 3:
-            return True
-        elif n % 2 == 0:
-            return False
-
-        # express (n-1) as (d*2^s)
+        for p in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37]:
+            if n % p == 0:
+                return n == p
+        
         d = n - 1
         s = 0
         while d % 2 == 0:
             d //= 2
             s += 1
 
-        for _ in range(k):
-            a = random.randint(2, n - 2)
+        for _ in range(rounds):
+            a = secrets.randbelow(n - 3) + 2
             x = pow(a, d, n)
             if x == 1 or x == n - 1:
                 continue
@@ -47,80 +41,124 @@ class ElGamal:
                 return False
         return True
 
-    def _generate_large_prime(self) -> int:
-        # generate a large prime number
+    def generate_safe_prime(self, bits: int) -> Tuple[int, int]:
+        """Generate safe prime p = 2q + 1 using cryptographic RNG"""
+        while True:
+            # 生成候选q（bits-1位）
+            q = secrets.randbits(bits-1)
+            q |= (1 << (bits-2)) | 1  # 设置最高位和最低位
+            
+            if not self.miller_rabin_test(q, rounds=7):
+                continue
+                
+            # 计算候选p = 2q + 1
+            p = (q << 1) + 1
+            if self.miller_rabin_test(p, rounds=7):
+                return p, q
+
+    #endregion
+
+    #region Primitive Root Operations
+    def pollards_rho(self, n: int) -> int:
+        """Pollard's Rho algorithm with improved polynomial function"""
+        if n % 2 == 0:
+            return 2
+        if n % 3 == 0:
+            return 3
+
+        def f(x: int, c: int) -> int:
+            return (pow(x, 2, n) + c) % n
 
         while True:
-            p = random.getrandbits(self.bit_length)
-            # ensure p is odd and has the correct bit length
-            p |= (1 << self.bit_length - 1) | 1
-            if self._is_prime(p):
-                return p
+            c = secrets.randbelow(n-1) + 1
+            x = secrets.randbelow(n)
+            y = f(x, c)
+            d = 1
+            
+            while d == 1:
+                x = f(x, c)
+                y = f(f(y, c), c)
+                d = gcd(abs(x - y), n)
+                
+            if d != n:
+                return d
 
-    def factorize(self, n: int) -> set:
-        """返回 n 的所有不同质因数（无重复）"""
-        if n == 1:
-            return set()
-        
+    def _factorize(self, n: int) -> set:
+        """Hybrid factorization using Pollard's Rho and trial division"""
         factors = set()
         
-        # 处理 2 的因数
-        while n % 2 == 0:
-            factors.add(2)
-            n = n // 2
+        # 移除小因子
+        for p in [2, 3, 5, 7, 11, 13, 17, 19]:
+            if n % p == 0:
+                factors.add(p)
+                while n % p == 0:
+                    n //= p
         
-        # 处理奇数（3 到 √n）
-        i = 3
-        max_factor = int(n**0.5) + 1
-        while i <= max_factor:
-            while n % i == 0:
-                factors.add(i)
-                n = n // i
-                max_factor = int(n**0.5) + 1  # 更新 max_factor
-            i += 2  # 只检查奇数
-        
-        # 如果 n 仍然是质数（> 2）
-        if n > 1:
-            factors.add(n)
-        
+        if n == 1:
+            return factors
+
+        stack = [n]
+        while stack:
+            current = stack.pop()
+            if current == 1:
+                continue
+            if self.miller_rabin_test(current):
+                factors.add(current)
+                continue
+                
+            divisor = self.pollards_rho(current)
+            if divisor == current:  # 分解失败，可能是素数
+                factors.add(current)
+            else:
+                stack.append(divisor)
+                stack.append(current // divisor)
+                
         return factors
 
-
-    def is_primitive_root_probabilistic(self, g: int, p: int, factors: set) -> bool:
-        """Probabilistic check if g is a primitive root"""
-        if gcd(g, p) != 1:
+    def _is_primitive_root(self, g: int, p: int) -> bool:
+        """Optimized primitive root check for safe primes"""
+        # 安全素数的原根检查只需要验证两个条件
+        if pow(g, 2, p) == 1:
             return False
-        for q in factors:
-            if pow(g, (p-1)//q, p) == 1:
-                return False
+        if pow(g, (p-1)//2, p) == 1:
+            return False
         return True
 
-    def find_primitive_root_fast(self, p: int, max_trials=1000) -> Optional[int]:
-        """Quickly find a primitive root (probabilistic method)"""
-        if p == 2:
-            return 1
-        phi_p = p - 1
-        factors = self.factorize(phi_p)
-        for _ in range(max_trials):
-            g = random.randint(2, p-1)
-            if self.is_primitive_root_probabilistic(g, p, factors):
-                return g
-        return None  # Failure (very low probability)
+    def generate_safe_prime_and_generator(self) -> Tuple[int, int]:
+        """Generate (p, g) pair with p being a safe prime"""
+        while True:
+            p, q = self.generate_safe_prime(self.bit_length)
+            
+            # 安全素数的原根候选只需要测试几个值
+            for candidate in [2, 3, 5, 6, 7]:
+                if self._is_primitive_root(candidate, p):
+                    return p, candidate
+                
+            # 如果常见候选失败，回退到随机搜索
+            for _ in range(100):
+                g = secrets.randbelow(p-2) + 2
+                if self._is_primitive_root(g, p):
+                    return p, g
 
-    def _generate_large_prime_and_generator(self) -> Tuple[int, int]:
-        # generate a large prime and its generator
+    #endregion
 
-        p = self._generate_large_prime()
-        g = self.find_primitive_root_fast(p)
-        return p, g
-
+    #region Key Operations
     def generate_keys(self) -> Tuple[int, int]:
-        # generate public and private keys
-        # private key is a random number 1 < x < p-1
-        self.private_key = random.randint(2, self.p - 2)
-        # public key y = g^x mod p
+        """Generate key pair with proper range checking"""
+        if self.p is None or self.g is None:
+            raise RuntimeError("Prime parameters not initialized")
+            
+        # 使用密码学安全的RNG
+        self.private_key = secrets.randbelow(self.p - 2) + 1
         self.public_key = pow(self.g, self.private_key, self.p)
         return self.private_key, self.public_key
+    #endregion
+
+    #region Encryption/Decryption
+    def _validate_plaintext(self, plaintext: int):
+        """Ensure plaintext is in valid range"""
+        if plaintext >= self.p or plaintext < 0:
+            raise ValueError(f"Plaintext must be in [0, {self.p-1}]")
 
     def encrypt(
         self,
@@ -150,27 +188,28 @@ class ElGamal:
                 chunk_int = int.from_bytes(chunk, byteorder="big")
                 if chunk_int >= self.p:
                     raise ValueError("明文分段后仍然过大，请减小 chunk_size")
-                ciphertexts.append(self._encrypt_int(chunk_int))
+                ciphertexts.append(self.encrypt_int(chunk_int))
             return ciphertexts
         else:
             # 直接加密整数（短文本）
             if plaintext >= self.p:
                 raise ValueError("明文整数必须小于 p")
-            return self._encrypt_int(plaintext)
+            return self.encrypt_int(plaintext)
 
-    def _encrypt_int(self, plaintext: int) -> Tuple[int, int]:
-        # 预计算 p-1 的质因数（避免重复分解）
+    def encrypt_int(self, plaintext: int) -> Tuple[int, int]:
+        """Core encryption logic with safe parameter checks"""
+        self._validate_plaintext(plaintext)
+        
+        # 缓存phi(p)的因数分解
         if self._phi_factors is None:
-            self._phi_factors = self.factorize(self.p - 1)
-        
+            self._phi_factors = self._factorize(self.p - 1)
+            
+        # 生成安全的随机指数k
         while True:
-            # 使用secrets生成密码学安全的随机数
-            k = secrets.randbelow(self.p - 2 - 2 + 1) + 2  # 等价于 randint(2, self.p - 2)
-            # 快速检查是否互质
-            if all(k % q != 0 for q in self._phi_factors):
+            k = secrets.randbelow(self.p - 2) + 1
+            if gcd(k, self.p - 1) == 1:
                 break
-        
-        # 更高效的计算方式
+                
         c1 = pow(self.g, k, self.p)
         s = pow(self.public_key, k, self.p)
         c2 = (plaintext * s) % self.p
@@ -194,7 +233,7 @@ class ElGamal:
             # 长文本解密（分段）
             plaintext_bytes = b""
             for c1, c2 in ciphertext:
-                chunk_int = self._decrypt_int(c1, c2)
+                chunk_int = self.decrypt_int(c1, c2)
                 # 计算该段的字节长度（动态调整）
                 chunk_size = (chunk_int.bit_length() + 7) // 8
                 plaintext_bytes += chunk_int.to_bytes(chunk_size, byteorder="big")
@@ -209,10 +248,13 @@ class ElGamal:
         else:
             # 短文本解密（直接返回整数）
             c1, c2 = ciphertext
-            return self._decrypt_int(c1, c2)
+            return self.decrypt_int(c1, c2)
 
-    def _decrypt_int(self, c1: int, c2: int) -> int:
-        """解密单个整数（内部方法）"""
+    def decrypt_int(self, c1: int, c2: int) -> int:
+        """Core decryption logic with input validation"""
+        if not (0 < c1 < self.p and 0 < c2 < self.p):
+            raise ValueError("Invalid ciphertext components")
+            
         s = pow(c1, self.private_key, self.p)
-        s_inv = pow(s, self.p - 2, self.p)  # 费马小定理求逆元
+        s_inv = pow(s, -1, self.p)  # Python 3.8+ syntax
         return (c2 * s_inv) % self.p
