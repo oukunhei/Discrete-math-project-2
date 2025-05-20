@@ -11,12 +11,8 @@ class ElGamal:
         self.public_key = None
 
     def _is_prime(self, n: int, k: int = 5) -> bool:
-        """
-        Miller-Rabin素性测试
-        :param n: 待测试的数
-        :param k: 测试轮数
-        :return: 是否为素数
-        """
+        # Miller-Rabin primal test
+
         if n <= 1:
             return False
         elif n <= 3:
@@ -24,7 +20,7 @@ class ElGamal:
         elif n % 2 == 0:
             return False
 
-        # 将n-1表示为d*2^s
+        # express (n-1) as (d*2^s)
         d = n - 1
         s = 0
         while d % 2 == 0:
@@ -59,7 +55,7 @@ class ElGamal:
         if p == 2:
             return 1
 
-        # 分解p-1的质因数（需要提升算法效率）
+        # prime factorization of (p-1)
         factors = []
         n = p - 1
         # test if it is even
@@ -67,6 +63,7 @@ class ElGamal:
             factors.append(2)
             while n % 2 == 0:
                 n //= 2
+                
         # test odd numbers
         i = 3
         while i * i <= n:
@@ -78,7 +75,7 @@ class ElGamal:
         if n > 1:
             factors.append(n)
 
-        # find a generator
+        # find a primitive root
         for g in range(2, p):
             flag = True
             for factor in factors:
@@ -98,9 +95,9 @@ class ElGamal:
 
     def generate_keys(self) -> Tuple[int, int]:
         # generate public and private keys
-        #私钥是一个随机数 1 < x < p-1
+        # private key is a random number ranging 1 < x < p-1
         self.private_key = random.randint(2, self.p - 2)
-        # 公钥 y = g^x mod p
+        # public key y = g^x mod p
         self.public_key = pow(self.g, self.private_key, self.p)
         return self.private_key, self.public_key
 
@@ -112,16 +109,16 @@ class ElGamal:
         """
         encrypt the plaintext (automatically handles chunking)
         :param plaintext: plaintext (int, str, or bytes)
-        :param return_str: 解密时是否返回字符串（仅对bytes/str输入有效）
-        :return: 密文（短文本返回 (c1, c2)，长文本返回 [(c1, c2), ...]）
+        :param return_str: return string or not when decrypt
+        :return: ciphertext  ((c1, c2) for short text，[(c1, c2), ...] for long text)
         """
         if isinstance(plaintext, (str, bytes)):
             # if plaintext is str or bytes, convert to bytes
             if isinstance(plaintext, str):
                 plaintext = plaintext.encode("utf-8")
                 
-            # 计算合适的 chunk_size（确保每段数值 < p）
-            chunk_size = (self.p.bit_length() // 8) - 1  # 预留空间
+            # compute suitable chunk_size (each part length < p)
+            chunk_size = (self.p.bit_length() // 8) - 1 
             chunks = [
                 plaintext[i:i + chunk_size]
                 for i in range(0, len(plaintext), chunk_size)
@@ -131,23 +128,23 @@ class ElGamal:
             for chunk in chunks:
                 chunk_int = int.from_bytes(chunk, byteorder="big")
                 if chunk_int >= self.p:
-                    raise ValueError("明文分段后仍然过大，请减小 chunk_size")
+                    raise ValueError("please reduce plaintext size")
                 ciphertexts.append(self._encrypt_int(chunk_int))
             return ciphertexts
         else:
-            # 直接加密整数（短文本）
+            # encrypt an integer directly
             if plaintext >= self.p:
-                raise ValueError("明文整数必须小于 p")
+                raise ValueError("plaintext integer must be less than p")
             return self._encrypt_int(plaintext)
 
     def _encrypt_int(self, plaintext: int) -> Tuple[int, int]:
-        """加密一个整数"""
+        # encrypt an integer
         while True:
             k = random.randint(2, self.p - 2)
-            if gcd(k, self.p - 1) == 1:  # 确保k与p-1互质
+            if gcd(k, self.p - 1) == 1:  # ensure k is coprime with (p-1)
                 break
         
-        # 更高效的计算方式
+        # get ciphertext component 
         c1 = pow(self.g, k, self.p)
         s = pow(self.public_key, k, self.p)
         c2 = (plaintext * s) % self.p
@@ -159,24 +156,23 @@ class ElGamal:
         return_str: bool = True
     ) -> Union[int, bytes, str]:
         """
-        解密密文（自动判断是否分段）
-        :param ciphertext: 密文（短文本 (c1, c2)，长文本 [(c1, c2), ...]）
-        :param return_str: 是否返回字符串（仅对bytes/str输入有效）
-        :return: 明文（整数或字节或字符串）
+        decrypt ciphertext (automatically detects chunking)
+        :param ciphertext: ciphertext (short text (c1, c2), long text [(c1, c2), ...])
+        :param return_str: whether to return string (only effective for bytes/str input)
+        :return: plaintext (int, bytes, str)
         """
         if self.private_key is None:
-            raise ValueError("缺少私钥，无法解密")
+            raise ValueError("lack of private key for decryption")
 
         if isinstance(ciphertext, list):
-            # 长文本解密（分段）
+            # long text
             plaintext_bytes = b""
             for c1, c2 in ciphertext:
                 chunk_int = self._decrypt_int(c1, c2)
-                # 计算该段的字节长度（动态调整）
+                # compute the chunk size
                 chunk_size = (chunk_int.bit_length() + 7) // 8
                 plaintext_bytes += chunk_int.to_bytes(chunk_size, byteorder="big")
             
-            # 根据return_str决定返回类型
             if return_str:
                 try:
                     return plaintext_bytes.decode("utf-8")
@@ -184,12 +180,12 @@ class ElGamal:
                     return plaintext_bytes
             return plaintext_bytes
         else:
-            # 短文本解密（直接返回整数）
+            # short text decryption (return integer)
             c1, c2 = ciphertext
             return self._decrypt_int(c1, c2)
 
     def _decrypt_int(self, c1: int, c2: int) -> int:
-        """解密单个整数（内部方法）"""
+        # decrypt an integer
         s = pow(c1, self.private_key, self.p)
-        s_inv = pow(s, self.p - 2, self.p)  # 费马小定理求逆元
+        s_inv = pow(s, self.p - 2, self.p)  # find the multiplicative inverse
         return (c2 * s_inv) % self.p
