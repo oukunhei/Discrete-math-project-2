@@ -1,4 +1,4 @@
-from ElGamal3 import ElGamal
+from ElGamal_3 import ElGamal
 import time
 
 def test_ElGamal(message: str):
