@@ -29,6 +29,12 @@ Discrete-math-project-2\
 │ ├── test_1.py # test the basic ElGamal_1.py \
 │ └── test_3.py # test the ElGamal_3.py file\
 │ └── textual2.py # test the algorithm correctness\
+├── security/\ 
+│ ├── security_ELG.py \
+│ ├── security_RSA1.py \
+│ ├── security_RSA2.py \
+│ ├── security_RSA3.py \
+│ └── security_RSA4.py \
 ├── Performance.ipynb # 
 
 ## Getting Started
