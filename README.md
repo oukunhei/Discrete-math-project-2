@@ -67,7 +67,6 @@ This RSA algorithm includes utilities for generating prime numbers, RSA key pair
 - `RSA_eval.py`: Test example - to be modified
 - `RSA_eval1.py`: Test example - to be modified
 - `RSA_textual.py`: Test example - to be modified
-- `Performance.ipynb`: Performance test and visualization.
 
 ### Usage
 ```bash
@@ -88,4 +87,9 @@ This ElGamal algorithm implements an asymmetric encryption system using large pr
 ```bash
 python test.py
 ```
+
+## Analysis
+
+### Core files
+- `Performance.ipynb`: Performance test and visualization.
 
