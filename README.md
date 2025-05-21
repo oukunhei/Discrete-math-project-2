@@ -28,7 +28,7 @@ Discrete-math-project-2\
 │ ├── ElGamal_textual1.py \
 │ ├── test_3.py # test for the file ElGamal_3.py \
 │ └── test.py # to be modified\
-├── Performance.ipynb # \
+├── Performance.ipynb # 
 
 ## Getting Started
 
