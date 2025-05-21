@@ -86,19 +86,28 @@ class RSA:
     # RSA encrypt an integer
     def encrypt_int(self, plaintext: int, public_key: Tuple[int, int]) -> int:
         e, n = public_key
+<<<<<<< HEAD
         if plaintext < 0:
             raise ValueError("Plaintext cannot be negative")
+=======
+>>>>>>> c24bcb650ec8836c79b9dcb3d38c361c002706bc
         if plaintext >= n:
             raise ValueError("The plaintext is too large and must be less than n")
         return pow(plaintext, e, n)
 
     # RSA decrypt an integer
     def decrypt_int(self, ciphertext: int) -> int:
+<<<<<<< HEAD
         d, n = self.private_key
         if ciphertext < 0:
             raise ValueError("Plaintext cannot be negative")
         if self.private_key is None:
             raise ValueError("Private key not set. Cannot decrypt.")
+=======
+        if self.private_key is None:
+            raise ValueError("Private key not set. Cannot decrypt.")
+        d, n = self.private_key
+>>>>>>> c24bcb650ec8836c79b9dcb3d38c361c002706bc
         return pow(ciphertext, d, n)
 
     # RSA encrypt text (block by block)
@@ -186,6 +195,7 @@ class RSA:
 if __name__ == "__main__":
     rsa = RSA(bit_length=2048)  # In practice, use larger bit lengths (2048 or 4096)
     public_key, private_key = rsa.generate_keys()
+<<<<<<< HEAD
     print(f"mod n: {rsa.n}")
     print(f"public key (e, n): {public_key}")
     print(f"private key (d, n): {private_key}")
@@ -219,3 +229,38 @@ if __name__ == "__main__":
     assert decrypted_hybrid.decode() == hybrid_message
 
     print("\nAll tests successful!")
+=======
+    print(f"模数 n: {rsa.n}")
+    print(f"公钥 (e, n): {public_key}")
+    print(f"私钥 (d, n): {private_key}")
+
+    # Test RSA encryption
+    num_message = 12345
+    print(f"\n整数明文: {num_message}")
+    cipher = rsa.encrypt_int(num_message, public_key)
+    print(f"加密后: {cipher}")
+    plain = rsa.decrypt_int(cipher)
+    print(f"解密后: {plain}")
+    assert plain == num_message
+
+    # Test RSA text encryption
+    text_message = "Hello, RSA encryption with long message support!"
+    print(f"\n文本明文: {text_message}")
+    cipher_blocks = rsa.encrypt_text(text_message, public_key)
+    print(f"加密后: {cipher_blocks}")
+    decrypted_text = rsa.decrypt_text(cipher_blocks)
+    print(f"解密后: {decrypted_text}")
+    assert decrypted_text.startswith("Hello")
+
+    # Test hybrid encryption
+    hybrid_message = "Hello, this is a secret message using hybrid encryption!"
+    print(f"\n混合加密文本明文: {hybrid_message}")
+    encrypted_aes_key, encrypted_message = rsa.hybrid_encrypt(hybrid_message)
+    print(f"加密后的AES密钥: {encrypted_aes_key}")
+    print(f"加密后的消息: {encrypted_message.hex()}")
+    decrypted_hybrid = rsa.hybrid_decrypt(encrypted_aes_key, encrypted_message)
+    print(f"解密得到的消息: {decrypted_hybrid.decode()}")
+    assert decrypted_hybrid.decode() == hybrid_message
+
+    print("\n所有测试成功！")
+>>>>>>> c24bcb650ec8836c79b9dcb3d38c361c002706bc
