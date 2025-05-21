@@ -1,5 +1,5 @@
 import unittest
-from ElGamal3 import ElGamal
+from ElGamal_3 import ElGamal
 import random
 import string
 from typing import Union
