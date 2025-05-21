@@ -12,7 +12,7 @@ from cryptography.hazmat.backends import default_backend
 import base64
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-class RSA:
+class MyRSA:
     def __init__(self, bit_length: int = 2048):
         self.bit_length = bit_length
         self.e = 65537  
@@ -89,47 +89,22 @@ class RSA:
         print("Key generation successful!")
         return self.public_key, self.private_key
     
-    # def generate_keys(self) -> Tuple[Tuple[int, int], Tuple[int, int]]:
-    #     """生成RSA密钥对"""
-    #     p = self._generate_large_prime()
-    #     q = self._generate_large_prime()
-    #     while q == p:
-    #         q = self._generate_large_prime()
 
-    #     # 计算模数 n 和 欧拉函数 φ(n)
-    #     n = p * q
-    #     phi = (p - 1) * (q - 1)
-
-    #     # 选择公钥指数 e，确保与 φ(n) 互质
-    #     e = self.e
-    #     while gcd(e, phi) != 1:
-    #         e += 2
-
-    #     # 计算私钥指数 d
-    #     d = self._modinv(e, phi)
-
-    #     # 返回公钥和私钥
-    #     self.public_key = (e, n)
-    #     self.private_key = (d, n)
-
-    #     self._crypto_private_key = {
-    #         'd': d,
-    #         'n': n
-    #     }
-    #     self._crypto_public_key = {
-    #         'e': e,
-    #         'n': n
-    #     }
-    #     return self.public_key, self.private_key
 
     def encrypt_int(self, plaintext: int, public_key: Tuple[int, int]) -> int:
         """Ues OAEP padding to encrypt an integer"""
+        if not isinstance(plaintext, int):
+            raise ValueError("Plaintext must be an integer")
         e, n = public_key
+        if plaintext < 0:
+            raise ValueError("Plaintext cannot be negative")
         if plaintext >= n:
             raise ValueError("The plaintext is too large and must be less than n")
 
-        plaintext_bytes = plaintext.to_bytes((plaintext.bit_length() + 7) // 8, 'big')
-
+        try:
+            plaintext_bytes = plaintext.to_bytes((plaintext.bit_length() + 7) // 8, 'big')
+        except OverflowError:
+            raise ValueError("Plaintext too large for conversion")
         ciphertext = self._crypto_public_key.encrypt(
             plaintext_bytes,
             padding.OAEP(
@@ -251,31 +226,31 @@ class RSA:
 
 
 if __name__ == "__main__":
-    rsa = RSA(bit_length=1024)  
+    myrsa = MyRSA(bit_length=1024)  
 
-    public_key, private_key = rsa.generate_keys()
-    print(f"模数 n: {rsa.n}")
-    print(f"公钥 (e, n): {public_key}")
-    print(f"私钥 (d, n): {private_key}")
+    public_key, private_key = myrsa.generate_keys()
+    print(f"mod n: {myrsa.n}")
+    print(f"public key (e, n): {public_key}")
+    print(f"private key (d, n): {private_key}")
 
-  
-    rsa.save_keys("rsa_key.pem", password="mysecurepassword")
-    rsa.load_keys("rsa_key.pem", password="mysecurepassword")
+
+    myrsa.save_keys("rsa_key.pem", password="mysecurepassword")
+    myrsa.load_keys("rsa_key.pem", password="mysecurepassword")
 
     num_message = 12345
-    print(f"\n整数明文: {num_message}")
-    cipher = rsa.encrypt_int(num_message, public_key)
-    print(f"加密后: {cipher}")
-    plain = rsa.decrypt_int(cipher)
-    print(f"解密后: {plain}")
+    print(f"\nInteger plaintext: {num_message}")
+    cipher = myrsa.encrypt_int(num_message, public_key)
+    print(f"Encrypted: {cipher}")
+    plain = myrsa.decrypt_int(cipher)
+    print(f"Decrypted: {plain}")
     assert plain == num_message
 
     text_message = "Hello, RSA encryption with OAEP padding!"
-    print(f"\n文本明文: {text_message}")
-    cipher_blocks = rsa.encrypt_text(text_message, public_key)
-    print(f"加密后: {cipher_blocks}")
-    decrypted_text = rsa.decrypt_text(cipher_blocks)
-    print(f"解密后: {decrypted_text}")
+    print(f"\nText plaintext: {text_message}")
+    cipher_blocks = myrsa.encrypt_text(text_message, public_key)
+    print(f"Encrypted: {cipher_blocks}")
+    decrypted_text = myrsa.decrypt_text(cipher_blocks)
+    print(f"Decrypted: {decrypted_text}")
     assert decrypted_text == text_message
 
-    print("\nRSA 加解密测试成功！")
+    print("\nRSA encryption and decryption test successful!")

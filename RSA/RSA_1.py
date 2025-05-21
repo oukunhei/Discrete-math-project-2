@@ -82,6 +82,9 @@ class RSA:
         return self.public_key, self.private_key
 
     def encrypt_int(self, plaintext: int, public_key: Tuple[int, int]) -> int:
+        
+        if plaintext < 0:  # check for negative integers
+            raise ValueError("Plaintext must be non-negative")
         e, n = public_key
         if plaintext >= n:
             raise ValueError("The plaintext is too large and must be less than n")
@@ -97,22 +100,21 @@ class RSA:
         e, n = public_key
         max_block_bytes = (n.bit_length() - 1) // 8  
         message_bytes = message.encode('utf-8')
-    
-        # split message into blocks
+
         blocks = []
         for i in range(0, len(message_bytes), max_block_bytes):
             block = message_bytes[i:i+max_block_bytes]
             blocks.append(block)
-    
-        # encrypt each block
+
         cipher_blocks = []
         for block in blocks:
             m_int = int.from_bytes(block, 'big')
+            if m_int < 0:  # check for negative integers
+                raise ValueError("Plaintext integer cannot be negative")
             c_int = pow(m_int, e, n)
             cipher_blocks.append(c_int)
-    
-        return cipher_blocks
 
+        return cipher_blocks
 
     def decrypt_text(self, ciphertext: List[int]) -> str:
         if self.private_key is None:
@@ -137,31 +139,31 @@ class RSA:
         return message_bytes.decode('utf-8')
 
 
-# For testing
+""" # For testing
 if __name__ == "__main__":
     rsa = RSA(bit_length=64)  # In practice, use larger bit lengths (2048 or 4096)
 
     public_key, private_key = rsa.generate_keys()
-    print(f"模数 n: {rsa.n}")
-    print(f"公钥 (e, n): {public_key}")
-    print(f"私钥 (d, n): {private_key}")
+    print(f"mod n: {rsa.n}")
+    print(f"public key (e, n): {public_key}")
+    print(f"private key (d, n): {private_key}")
 
 
     num_message = 12345
-    print(f"\n整数明文: {num_message}")
+    print(f"\ninteger plaintext: {num_message}")
     cipher = rsa.encrypt_int(num_message, public_key)
-    print(f"加密后: {cipher}")
+    print(f"encrypted: {cipher}")
     plain = rsa.decrypt_int(cipher)
-    print(f"解密后: {plain}")
+    print(f"decrypted: {plain}")
     assert plain == num_message
 
 
     text_message = "Hello, RSA encryption with long message support!"
-    print(f"\n文本明文: {text_message}")
+    print(f"\ntext plaintext: {text_message}")
     cipher_blocks = rsa.encrypt_text(text_message, public_key)
-    print(f"加密后: {cipher_blocks}")
+    print(f"encrypted: {cipher_blocks}")
     decrypted_text = rsa.decrypt_text(cipher_blocks)
-    print(f"解密后: {decrypted_text}")
+    print(f"decrypted: {decrypted_text}")
     assert decrypted_text.startswith("Hello")
 
-    print("\nRSA 加解密测试成功！")
+    print("\nRSA encryption and decryption test successful!") """

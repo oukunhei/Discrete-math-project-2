@@ -6,7 +6,7 @@ from typing import Tuple, List
 
 
 class RSA:
-    def __init__(self, bit_length: int = 2048):
+    def __init__(self, bit_length: int = 1024):
         if bit_length < 1024:
             raise ValueError("Key length too short. Use at least 1024 bits for security.")
         self.bit_length = bit_length
@@ -87,6 +87,8 @@ class RSA:
     def encrypt_int(self, plaintext: int, public_key: Tuple[int, int]) -> int:
         """Encrypt an integer using RSA public key."""
         e, n = public_key
+        if plaintext < 0:
+            raise ValueError("Plaintext cannot be negative")
         if plaintext >= n:
             raise ValueError("Plaintext must be less than modulus n")
         return pow(plaintext, e, n)
@@ -96,6 +98,8 @@ class RSA:
         if self.private_key is None:
             raise ValueError("Private key not set. Cannot decrypt.")
         d, n = self.private_key
+        if ciphertext < 0:
+            raise ValueError("Plaintext cannot be negative")
         if ciphertext >= n:
             raise ValueError("Ciphertext must be less than modulus n")
         return pow(ciphertext, d, n)
