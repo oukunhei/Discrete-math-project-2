@@ -100,5 +100,12 @@ python test.py
 ## Analysis
 
 ### Core files
+- `security_ELG.py`: Test the security.
+- `security_RSA1.py`: Test the security.
+- `security_RSA2.py`: Test the security.
+- `security_RSA3.py`: Test the security.
+- `security_RSA4.py`: Test the security.
+
+### Core files
 - `Performance.ipynb`: Quantified performance test and visualization.
 
