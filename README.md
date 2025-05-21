@@ -96,8 +96,8 @@ This ElGamal algorithm implements an asymmetric encryption system using large pr
 ```bash
 python test.py
 ```
-
-## Analysis
+## Security Algorithm
+This Security Algorithm test the security of RSA and ElGamal.
 
 ### Core files
 - `security_ELG.py`: Test the security.
