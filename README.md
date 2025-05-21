@@ -17,8 +17,6 @@ Discrete-math-project-2\
 │ ├── RSA_2.py # \
 │ ├── RSA_3.py # \
 │ ├── RSA_4.py # \
-│ ├── RSA_eval.py # \
-│ ├── RSA_eval1.py # \
 │ ├── RSA_textual.py # \
 │ └── test.py # \
 ├── ElGamal/\
@@ -64,8 +62,6 @@ This RSA algorithm includes utilities for generating prime numbers, RSA key pair
 - `RSA_2.py`: Implement PKCS#1 v1.5to prevent padding oracle attack
 - `RSA_3.py`: The hybrid encryption implementation of RSA encryption algorithm and AES symmetric encryption algorithm
 - `RSA_4.py`: Adopt cryptography package to add OAEP padding and PKCS#1 v1.5 padding
-- `RSA_eval.py`: Test example - to be modified
-- `RSA_eval1.py`: Test example - to be modified
 - `RSA_textual.py`: Test example - to be modified
 
 ### Usage
