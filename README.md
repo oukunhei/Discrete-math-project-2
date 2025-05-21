@@ -65,7 +65,7 @@ This RSA algorithm includes utilities for generating prime numbers, RSA key pair
 - `RSA_2.py`: Implement PKCS#1 v1.5to prevent padding oracle attack
 - `RSA_3.py`: The hybrid encryption implementation of RSA encryption algorithm and AES symmetric encryption algorithm
 - `RSA_4.py`: Adopt cryptography package to add OAEP padding and PKCS#1 v1.5 padding
-
+- `RSA_textual2.py`: Test correctness and running time for textual messages of the algorithm simply
 
 ### Usage
 ```bash
@@ -81,10 +81,10 @@ This ElGamal algorithm implements an asymmetric encryption system using large pr
 - `ElGamal_1.py`: Basic realization of the ElGamal Algorithm
 - `ElGamal_2.py`: Improved the efficiency of finding a generator
 - `ElGamal_3.py`: Improved Security Level
-- `ElGamal_textual1.py`: test running time of the algorithm
+- `ElGamal_textual1.py`: Test correctness and running time for textual messages of the algorithm simply
 - `test_1.py`: test the basic ElGamal_1.py 
 - `test_3.py`: test the ElGamal_3.py file
-- `textual2.py`: test the algorithm correctness
+- `textual2.py`: test the algorithm correctness for textual messages
 
 ### Usage
 ```bash
@@ -94,5 +94,5 @@ python test.py
 ## Analysis
 
 ### Core files
-- `Performance.ipynb`: Performance test and visualization.
+- `Performance.ipynb`: Quantified performance test and visualization.
 
