@@ -20,12 +20,13 @@ Discrete-math-project-2\
 │ ├── RSA_textual.py # \
 │ └── test.py # \
 ├── ElGamal/\
-│ ├── ElGamal.py # basic ElGamal\
-│ ├── ElGamal2.py # improved ElGamal of faster encrypting\
-│ ├── ElGamal_3.py # \
-│ ├── ElGamal_textual1.py \
-│ ├── test_3.py # test for the file ElGamal_3.py \
-│ └── test.py # to be modified\
+│ ├── ElGamal_1.py # Basic ElGamal\
+│ ├── ElGamal_2.py # Optimized Encrypting Efficiency\
+│ ├── ElGamal_3.py # Improved Security Level\
+│ ├── ElGamal_textual1.py # Test Running Time of the Algorithm\
+│ ├── test_1.py # test the basic ElGamal_1.py \
+│ └── test_3.py # test the ElGamal_3.py file\
+│ └── textual2.py # test the algorithm correctness\
 ├── Performance.ipynb # 
 
 ## Getting Started
@@ -75,9 +76,13 @@ all can directly run, but evaluation need to be improved
 This ElGamal algorithm implements an asymmetric encryption system using large prime numbers and modular exponentiation for secure key exchange and message encryption/decryption.
 
 ### Core files
-- `ElGamal.py`: Basic realization of the ElGamal Algorithm
-- `ElGamal.py2`: Improved the efficiency of finding a generator
-- `test.py`: test the algorithm
+- `ElGamal_1.py`: Basic realization of the ElGamal Algorithm
+- `ElGamal_2.py`: Improved the efficiency of finding a generator
+- `ElGamal_3.py`: Improved Security Level
+- `ElGamal_textual1.py`: test running time of the algorithm
+- `test_1.py`: test the basic ElGamal_1.py 
+- `test_3.py`: test the ElGamal_3.py file
+- `textual2.py`: test the algorithm correctness
 
 ### Usage
 ```bash
