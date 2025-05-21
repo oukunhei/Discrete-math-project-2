@@ -28,7 +28,7 @@ Discrete-math-project-2\
 │ ├── ElGamal_textual1.py \
 │ ├── test_3.py # test for the file ElGamal_3.py \
 │ └── test.py # to be modified\
-
+├── Performance.ipynb # \
 
 ## Getting Started
 
@@ -67,6 +67,7 @@ This RSA algorithm includes utilities for generating prime numbers, RSA key pair
 - `RSA_eval.py`: Test example - to be modified
 - `RSA_eval1.py`: Test example - to be modified
 - `RSA_textual.py`: Test example - to be modified
+- `Performance.ipynb`: Performance test and visualization.
 
 ### Usage
 ```bash
