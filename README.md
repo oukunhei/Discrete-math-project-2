@@ -37,7 +37,32 @@ Discrete-math-project-2\
 │ └── security_RSA4.py \
 ├── Performance.ipynb # 
 
-
+Discrete-math-project-2/
+├── README.md                 # 安装与运行说明
+├── RSA/
+│   ├── RSA_1.py              # Basic RSA
+│   ├── RSA_2.py              # PKCS#1 v1.5 padding
+│   ├── RSA_3.py              # RSA + AES 混合加密
+│   ├── RSA_4.py              # 同时支持 OAEP 和 PKCS#1 v1.5 填充
+│   ├── RSA_textual.py        # 文本加密测试
+│   ├── RSA_textual1.py       # 文本处理变体1
+│   ├── RSA_textual2.py       # 文本处理变体2
+│   └── test.py               # RSA 测试套件
+├── ElGamal/
+│   ├── ElGamal_1.py          # 基础 ElGamal 实现
+│   ├── ElGamal_2.py          # 加密效率优化版
+│   ├── ElGamal_3.py          # 安全增强版
+│   ├── ElGamal_textual1.py   # 算法运行时间测试
+│   ├── test_1.py             # 基础 ElGamal 测试
+│   ├── test_3.py             # 安全版 ElGamal 测试
+│   └── textual2.py           # 算法正确性验证
+├── security/
+│   ├── security_ELG.py       # ElGamal 安全测试
+│   ├── security_RSA1.py      # 基础 RSA 安全分析
+│   ├── security_RSA2.py      # PKCS#1 v1.5 安全测试
+│   ├── security_RSA3.py      # RSA+AES 混合分析
+│   └── security_RSA4.py      # OAEP 填充安全验证
+└── Performance.ipynb         # 性能基准测试 Notebook
 ## Getting Started
 
 ### Prerequisites
