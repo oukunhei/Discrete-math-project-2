@@ -17,10 +17,7 @@ Discrete-math-project-2\
 │ ├── RSA_2.py # PKCS#1 v1.5 padding\
 │ ├── RSA_3.py # +AES\
 │ ├── RSA_4.py # add OAEP padding and PKCS#1 v1.5 padding\
-│ ├── RSA_textual.py  \
-│ ├── RSA_textual1.py \
-│ ├── RSA_textual2.py \
-│ └── test.py \
+│ └── RSA_textual2.py \
 ├── ElGamal/\
 │ ├── ElGamal_1.py # Basic ElGamal\
 │ ├── ElGamal_2.py # Optimized Encrypting Efficiency\
