@@ -37,37 +37,7 @@ Discrete-math-project-2\
 │ └── security_RSA4.py \
 ├── Performance.ipynb # 
 
-Discrete-math-project-2/
-│
-├── README.md                 # Project documentation & setup instructions
-│
-├── RSA/                      # RSA implementation variants
-│   ├── RSA_1.py              # Basic RSA implementation
-│   ├── RSA_2.py              # With PKCS#1 v1.5 padding
-│   ├── RSA_3.py              # Hybrid RSA+AES implementation
-│   ├── RSA_4.py              # With both OAEP and PKCS#1 v1.5 padding
-│   ├── RSA_textual.py        # Text message handling (basic)
-│   ├── RSA_textual1.py       # Text processing variant 1
-│   ├── RSA_textual2.py       # Text processing variant 2
-│   └── test.py               # RSA test suite
-│
-├── ElGamal/                  # ElGamal implementation variants
-│   ├── ElGamal_1.py          # Basic ElGamal implementation
-│   ├── ElGamal_2.py          # Optimized encryption efficiency
-│   ├── ElGamal_3.py          # Enhanced security version
-│   ├── ElGamal_textual1.py   # Algorithm timing tests
-│   ├── test_1.py             # Tests for basic ElGamal
-│   ├── test_3.py             # Tests for secure ElGamal_3
-│   └── textual2.py           # Algorithm correctness verification
-│
-├── security/                 # Security analysis scripts
-│   ├── security_ELG.py       # ElGamal security tests
-│   ├── security_RSA1.py      # Basic RSA security analysis
-│   ├── security_RSA2.py      # PKCS#1 v1.5 security tests
-│   ├── security_RSA3.py      # RSA+AES hybrid analysis
-│   └── security_RSA4.py      # OAEP padding security verification
-│
-└── Performance.ipynb         # Jupyter notebook for performance benchmarking
+
 ## Getting Started
 
 ### Prerequisites
