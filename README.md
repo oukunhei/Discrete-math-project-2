@@ -11,7 +11,7 @@
 ### File Structure
 
 Discrete-math-project-2\
-├── README.md # 安装与运行说明\
+├── README.md # Instructions for Execution\
 ├── RSA/\
 │ ├── RSA_1.py # Basic\
 │ ├── RSA_2.py # PKCS#1 v1.5 padding\
