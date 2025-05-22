@@ -91,8 +91,11 @@ This ElGamal algorithm implements an asymmetric encryption system using large pr
 - `textual2.py`: test the algorithm correctness for textual messages
 
 ### Usage
+
+To utilize the ElGamal class, we have provided detailed methods including initialization and key generation, encryption and decryption in the test file. You can test the ElGamal algorithm with the following code:  
+
 ```bash
-python test.py
+python test_3.py
 ```
 ## Security Algorithm
 This Security Algorithm test the security of RSA and ElGamal.
